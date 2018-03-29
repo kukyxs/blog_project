@@ -1,5 +1,7 @@
 ####Django 笔记及项目
+
 ######笔记目录：
+
 1. Django 环境配置 (需要搭建 python 环境)
 2. Django 项目创建
 3. 创建 Django 应用
