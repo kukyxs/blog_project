@@ -15,9 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from blog_api.urls import router as blog_api_router
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^blog/', include('blog.urls', namespace="blog")),
     url(r'^comment/', include('comment.urls', namespace='comment')),
+
+    url(r'^api/', include('blog_api.urls', namespace='api')),
+    url(r'^api/', include(blog_api_router.urls)),
 ]
