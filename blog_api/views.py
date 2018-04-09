@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework import mixins
 from rest_framework import permissions
@@ -13,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from blog.models import Post, Category
+from blog_api.filters import PostFilter
 from blog_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from blog_api.serializers import PostSerializer, CategorySerializer, UserSerializer
 
@@ -90,6 +92,11 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
+    filter_backends = (DjangoFilterBackend,)
+    # 指定筛选参数
+    # filter_fields = ['title']
+    # 指定筛选类
+    filter_class = PostFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -259,3 +266,5 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ['username', ]

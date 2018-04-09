@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from blog.models import Post, Category
+from blog.models import Post, Category, Tag
 
 
 # class PostSerializer(serializers.Serializer):
@@ -27,18 +27,17 @@ from blog.models import Post, Category
 #         instance.excerpt = validated_data.get('excerpt', instance.excerpt)
 
 
-class UserSerializer(serializers.ModelSerializer):
-    posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
-
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id', 'username', 'posts']
-        filter_fields = ['__all__']
+        model = Tag
+        fields = "__all__"
 
 
 class PostSerializer(serializers.ModelSerializer):
     # author = UserSerializer()
     author = serializers.ReadOnlyField(source='author.username')
+    author_id = serializers.ReadOnlyField(source='author.id')
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
@@ -49,3 +48,14 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    # posts = serializers.StringRelatedField(many=True)
+    # posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
+    posts = PostSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = User
+        # fields = '__all__'
+        exclude = ['password', 'last_login', 'date_joined', 'groups', 'user_permissions']
