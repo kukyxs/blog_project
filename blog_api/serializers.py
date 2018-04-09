@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from blog.models import Post, Category
@@ -26,11 +27,22 @@ from blog.models import Post, Category
 #         instance.excerpt = validated_data.get('excerpt', instance.excerpt)
 
 
+class UserSerializer(serializers.ModelSerializer):
+    posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'posts']
+        filter_fields = ['__all__']
+
+
 class PostSerializer(serializers.ModelSerializer):
+    # author = UserSerializer()
+    author = serializers.ReadOnlyField(source='author.username')
+
     class Meta:
         model = Post
-        fields = ['id', 'title', 'body', 'create_time', 'modified_time', 'excerpt',
-                  'category', 'tags', 'author', 'views']
+        fields = "__all__"
 
 
 class CategorySerializer(serializers.ModelSerializer):

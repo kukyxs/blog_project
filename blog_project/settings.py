@@ -69,6 +69,13 @@ TEMPLATES = [
     },
 ]
 
+# REST_FRAMEWORK 配置信息
+REST_FRAMEWORK = {
+    # 配置全局分页类型和每页数量
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+}
+
 WSGI_APPLICATION = 'blog_project.wsgi.application'
 
 # Database

@@ -1,17 +1,20 @@
+from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics
+from rest_framework import mixins
+from rest_framework import permissions
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import mixins
-from rest_framework import generics
-from rest_framework import viewsets
 
 from blog.models import Post, Category
-from blog_api.serializers import PostSerializer, CategorySerializer
+from blog_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
+from blog_api.serializers import PostSerializer, CategorySerializer, UserSerializer
 
 
 @csrf_exempt
@@ -86,6 +89,17 @@ class PostL(generics.ListCreateAPIView):
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def destroy(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post is not None:
+            post.delete()
+            return Response({"message": "delete succeed", "code": "200"}, status=status.HTTP_200_OK)
+        return super(PostViewSet, self).destroy(self, request, *args, **kwargs)
 
 
 # #############################################################################################################
@@ -189,11 +203,6 @@ class PostD(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
 
 
-class PostDetailViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
-    serializer_class = PostSerializer
-
-
 # #############################################################################################################
 @api_view(['GET', 'POST'])
 def categories_view(request, format=None):
@@ -230,4 +239,23 @@ def category_detail_view(request, pk, format=None):
 
     elif request.method == 'DELETE':
         category.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"code": 200, "message": "delete succeed"}, status=status.HTTP_200_OK)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def destroy(self, request, *args, **kwargs):
+        category = self.get_object()
+        if category is not None:
+            category.delete()
+            return Response({"message": "delete succeed"})
+        return super(CategoryViewSet, self).destroy(self, request, *args, **kwargs)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (IsAdminOrReadOnly,)

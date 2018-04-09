@@ -9,6 +9,8 @@ app_name = 'api'
 router = routers.DefaultRouter()
 router.register(r'posts', views.PostViewSet)
 router.register(r'post', views.PostViewSet)
+router.register(r'users', views.UserViewSet)
+router.register(r'categories', views.CategoryViewSet)
 
 urlpatterns = [
     # url(r'^posts/$', views.post_list, name='api_posts'),
@@ -23,9 +25,9 @@ urlpatterns = [
     # url(r'^post/(?P<pk>[0-9]+)/$', views.PostDetailMixin.as_view(), name='api_post'),
     # url(r'^post/(?P<pk>[0-9]+)/$', views.PostD.as_view(), name='api_post'),
 
-    url(r'^categories/$', views.categories_view, name='categories'),
+    # url(r'^categories/$', views.categories_view, name='categories'),
 
-    url(r'^category/(?P<pk>[0-9]+)/$', views.category_detail_view, name='category'),
+    # url(r'^category/(?P<pk>[0-9]+)/$', views.category_detail_view, name='category'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
