@@ -14,7 +14,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from blog.models import Post, Category
+from blog.models import Post, Category, Tag
 from blog_api.filters import PostFilter
 from blog_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from blog_api.serializers import PostSerializer, CategorySerializer, UserSerializer
@@ -179,8 +179,12 @@ class PostDetail(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request, pk, format=None):
-        serializer = PostSerializer(self.get_object(pk=pk), data=request.data)
+        post = self.get_object(pk=pk)
+        serializer = PostSerializer(post, data=request.data)
+
         if serializer.is_valid():
+            for i in request.data['tags'].split(","):
+                post.tags.add(i)
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

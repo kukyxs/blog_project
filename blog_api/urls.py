@@ -22,7 +22,7 @@ urlpatterns = [
 
     # url(r'^post/(?P<pk>[0-9]+)/$', views.post_detail, name='api_post'),
     # url(r'^post/(?P<pk>[0-9]+)/$', views.post_detail_view, name='api_post'),
-    # url(r'^post/(?P<pk>[0-9]+)/$', views.PostDetail.as_view(), name='api_post'),
+    url(r'^post/(?P<pk>[0-9]+)/$', views.PostDetail.as_view(), name='api_post'),
     # url(r'^post/(?P<pk>[0-9]+)/$', views.PostDetailMixin.as_view(), name='api_post'),
     # url(r'^post/(?P<pk>[0-9]+)/$', views.PostD.as_view(), name='api_post'),
 

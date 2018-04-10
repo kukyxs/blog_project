@@ -8,7 +8,7 @@ Response 是一种 TemplateResponse 采用未呈现的内容，通过内容协�
 
 了解完 Request 和 Response 我们将对 view 分别通过 @api_view，APIView 和通用视图类对视图进行一些改造
 
-######1. api_view 注解改造
+######1. api_view 注解重构
 
 ``````python
 # ....import 省略
@@ -59,7 +59,7 @@ urlpatterns = format_suffix_patterns(urlpatterns)
 
 然后我们对我们接口请求的网址做些修改，在我们之前请求的网址末尾加入 .json 或者 .api 记得去除最末尾的 "/"，然后我们又可以看到修改前返回的 json 格式数据啦。对于 detail 接口的修改可以根据 list 进行相应修改，不做多余解释。
 
-###### 2. APIView 改造
+###### 2. APIView 重构
 
 ``````python
 # ....import 省略
@@ -91,7 +91,7 @@ urlpatterns = fromat_suffix_patterns(urlpatterns)
 
 根据 list 可以修改 detail 的接口 view
 
-###### 3. 通过 mixins 和 generics 改造
+###### 3. 通过 mixins 和 generics 重构
 
 ``````python
 class PostListMixins(mixins.ListModelMixin,
@@ -128,7 +128,7 @@ class PostDetailMixin(mixins.RetrieveModelMixin,
         return self.destroy(self, request, *args, **kwargs)
 ``````
 
-##### 4. 通用的基于类改造(代码少到想哭，不信继续看)
+###### 4. 通用的基于类重构(代码少到想哭，不信继续看)
 
 ``````python
 # 列表视图
@@ -309,3 +309,50 @@ Android Retrofit Api![apis](https://upload-images.jianshu.io/upload_images/28887
 更新详情![update_detail](https://upload-images.jianshu.io/upload_images/2888797-f8fbbbc5afe2b618.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![update_detail_result](https://upload-images.jianshu.io/upload_images/2888797-cd4383f46b9768af.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 删除数据![delete_obj](https://upload-images.jianshu.io/upload_images/2888797-be32d82940ac8e85.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![delete_obj_result](https://upload-images.jianshu.io/upload_images/2888797-db3e1b84d3efd760.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+最后的最后，自己写的时候遇到的一个坑，记录下吧，更新 ManyToMany 字段的时候，我们需要重新写 post 方法，直接传 id 不能更新。
+
+``````python
+# 假设我们的 post 有一个 ManyToMany 字段 tags
+class PostDetailView(APIView):
+    def get_object(self, pk):
+        try:
+            return Post.objects.filter(pk=pk)
+        except Post.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+	def get(self, request, pk, format=None):
+        serializer = PostSerializer(self.get_object(pk), data=request.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    # 更新的时候，需要约定好 ManyToMany 字段的 id 回传时候以什么方式间隔，例如我们用 "," 分隔
+    def put(self, request, pk, format=None):
+        post = self.get_object(pk)
+        serializer = PostSerializer(post, data=request.data)
+        if serializer.is_valid():
+            # 我们需要提取 request.data 中 tags 所对应的值，然后通过切割字符串取出 id
+            for id in request.data['tags'].split(","):
+                post.tags.add(id)
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # 建议最后返回的 status 不使用 status.HTTP_204_NO_CONTENT，不方便判断
+    def delete(self, request, pk, format=None):
+        self.get_object(pk).delete()
+        return Response({"message": "Delete Succeed", "code": "200"}, status=status.HTTP_200_OK)
+``````
+
+在 url 中还是之前的那样绑定
+
+``````python
+urlpatterns = [
+    url(r"^post/(?P<pk>[0-9]+)/&", views.PostDetailView.as_view(), name="api_post"),
+]
+``````
+
+修改完后我们就可以开心的更新 M2M 字段了，httpie 命令行如下
+
+``````
+http -a [username]:[password] PUT http://192.168.x.xxx:8080/api/post/9/ ...tags=1,2...
+``````
