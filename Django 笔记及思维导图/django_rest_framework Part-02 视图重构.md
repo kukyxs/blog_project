@@ -330,9 +330,15 @@ class PostDetailView(APIView):
         post = self.get_object(pk)
         serializer = PostSerializer(post, data=request.data)
         if serializer.is_valid():
-            # 我们需要提取 request.data 中 tags 所对应的值，然后通过切割字符串取出 id
-            for id in request.data['tags'].split(","):
-                post.tags.add(id)
+            # 记得先 clear，然后判断是否上传了 id，上传了 id 需要判断是否多个
+            post.tags.clear()
+            if request.data['tags']:
+                if "," in request.data['tags']:
+                    # 我们需要提取 request.data 中 tags 所对应的值，然后通过切割字符串取出 id
+                    for i in request.data['tags'].split(","):
+                        post.tags.add(i)
+                else:
+                    post.tags.add(request.data['tags'])
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
