@@ -190,3 +190,132 @@ class PostViewSet(viewsets.ModelViewSet):
 ``````
 
 然后我们通过别的用户名对该接口做修改信息的操作，很显然也被拒绝了。
+
+##### 四. rest_framework 身份认证
+
+当我们设置权限的时候，我们不可能每个接口都去设置用户登录，所以就涉及用户身份验证，Android App 常用的身份验证是 Token 验证，所以这部分主要讲 TokenAuthentication，rest_framework 的认证还包括许多，可以查看官网[Authentication](http://www.django-rest-framework.org/api-guide/authentication/)
+
+首先我们需要在 settings.py 文件中配置 TokenAuthentication
+
+``````python
+# 首先在 INSTALLED_APPS 注册 authtoken
+INSTALLED_APPS = [
+    # ....
+    'rest_framework',
+    'rest_framework.authtoken',
+]
+
+# 然后在 REST_FRAMEWORK 字典中配置 DEFAULT_AUTHENTICATION_CLASSES
+REST_FRAMEWORK = {
+    # 配置全局为 token 验证
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
+``````
+
+配置完后我们需要做数据库的迁移工作，生成 token 的数据库  ```python manage.py migrate``` 生成数据库后，我们需要对已经存在的用户生成 token
+
+``````python
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+
+users = User.objects.all()
+for user in users:
+    # 生成 token
+    token, created = Token.objects.get_or_create(user=user)
+    print user.username, token.key
+``````
+
+当然，我们不可能每次创建用户的时候都手动去生成 token，接着我们需要在 models.py 文件中加入如下代码
+
+`````python
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
+`````
+
+接着我们需要配置 url，用于返回 token 值
+
+``````python
+from rest_framework.authtoken.views import obtain_auth_token
+
+urlpatterns = [
+    url(r'^login/$', obtain_auth_token, name='get_author_token'),
+]
+``````
+
+配置完后我们可以运行项目，通过 httpie 进行访问调试，注意该页面不允许 GET 访问
+
+```http POST http://192.168.x.xxx:8080/api/login/ username=xxx password=xxxxx```
+
+然后我们能够查看到返回结果类似
+
+``````json
+{ "token": "d72251c39dba2b164db18480cfbccefbcc82bbc1" }
+``````
+
+当我们获取到 token 后保存到 SharePreference 中，每次访问都在请求头带上 token 值，就不需要每次通过账号密码登录才有权限。
+
+之前我们做删除等编辑操作在 httpie 都是如下操作的
+
+`````
+http -a[username]:[password] DELETE http://192.168.x.xxx:8080/api/post/10/
+`````
+
+获得 token 后，我们可以通过如下操作，也可以达到相同的效果
+
+``````
+http DELETE http://192.168.x.xxx:8080/api/post/10/ "Authorization: Token [your_token_value]"
+``````
+
+如果 obtain_auth_token 不满足需求，我们需要返回更多的字段，那我们可以自定义 AuthToken，首先我们先查看 obtain_auth_token 的源码，然后根据源码进行修改
+
+``````python
+class ObtainAuthToken(APIView):
+	# 限流类
+    throttle_classes = ()
+    # 权限类
+    permission_classes = ()
+    # 解析类
+    parser_classes = (parsers.FormParser, parsers.MultiPartParser, parsers.JSONParser,)
+    # 渲染类
+    renderer_classes = (renderers.JSONRenderer,)
+    # 序列化类
+    serializer_class = AuthTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        # 获取序列化类实例
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        # 获取序列化实例中的 user 参数，用来创建 token
+        user = serializer.validated_data['user']
+        # 创建 token
+        token, created = Token.objects.get_or_create(user=user)
+        # 返回 json 渲染
+        return Response({'token': token.key})
+
+obtain_auth_token = ObtainAuthToken.as_view()
+``````
+
+那我们自定义的认证类就可以继承 ObtainAuthToken 来实现，重写 post 方法即可
+
+``````python
+# views.py
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid()
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'user_id': user.pk, 'user_name': user.username})
+``````
+
+然后在 url 绑定我们自己的认证类即可

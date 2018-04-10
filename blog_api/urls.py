@@ -3,6 +3,7 @@ from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.urlpatterns import format_suffix_patterns
 
+from blog_api.views import CustomAuthToken
 from . import views
 
 app_name = 'api'
@@ -30,7 +31,8 @@ urlpatterns = [
 
     # url(r'^category/(?P<pk>[0-9]+)/$', views.category_detail_view, name='category'),
 
-    url(r'^login/$', obtain_auth_token, name='get_author_token'),
+    # url(r'^login/$', obtain_auth_token, name='get_author_token'),
+    url(r'^login/$', CustomAuthToken.as_view(), name='get_author_token'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

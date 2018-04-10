@@ -9,12 +9,14 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from blog.models import Post, Category, Tag
+from blog.models import Post, Category
 from blog_api.filters import PostFilter
 from blog_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from blog_api.serializers import PostSerializer, CategorySerializer, UserSerializer
@@ -282,3 +284,13 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ['username', ]
+
+
+# 自定义 AuthToken
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid()
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'user_id': user.pk, 'user_name': user.username})
