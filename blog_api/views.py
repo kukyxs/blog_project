@@ -8,6 +8,7 @@ from rest_framework import mixins
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -97,6 +98,7 @@ class PostViewSet(viewsets.ModelViewSet):
     # filter_fields = ['title']
     # 指定筛选类
     filter_class = PostFilter
+    authentication_classes = (TokenAuthentication,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
