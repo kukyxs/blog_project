@@ -183,6 +183,8 @@ class PostDetail(APIView):
         serializer = PostSerializer(post, data=request.data)
 
         if serializer.is_valid():
+            # 记得先 clear
+            post.tags.clear()
             for i in request.data['tags'].split(","):
                 post.tags.add(i)
             serializer.save()
