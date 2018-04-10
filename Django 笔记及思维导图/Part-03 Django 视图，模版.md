@@ -1,9 +1,7 @@
-##### 五. 创建 Django 视图
-
+前面部分将数据库的操作讲述了一遍，注意部分我们终于可以看到些真实的东西了，而不是数据...数据...数据...
+##### 创建 django 视图
 ###### 普通视图
-
-1. 首先在应用文件夹下创建 urls.py 文件，然后在项目下的 urls.py 文件中将应用的 urls 配置进去
-
+1. 首先在应用文件夹下创建 urls.py 文件，用来配置视图的 url，然后我们需要在项目下的 urls.py 文件中将该应用的 urls 配置进去
    ```python
    # 在项目下 urls.py 文件配置应用的 urls.py 文件
    from django.conf.urls import url, include
@@ -11,23 +9,19 @@
 
    urlpatterns = [
        url(r'^admin/', admin.site.urls),
-       # include 作用：在 Django 匹配 url 时候匹配完 blog/ 后，再次匹配下层地址，所以在 blog/ 
+       # include 作用：在 django 匹配 url 时候匹配完 blog/ 后，再次匹配下层地址，所以在 blog/ 
        # 后面不可以添加 "$" 符号，不然会导致不能匹配到地址，namespace 为了区分不同应用下同名的模版
        url(r'^blog/', include('blog.urls', namespace="blog")),
    ]
    ```
-
 2. 在应用文件夹下的 views.py 文件中加入视图
-
    ```python
    from django.http import HttpResponse
 
    def index(request):
-   	return HttpResponse("Hello Django")
+       return HttpResponse("Hello django")
    ```
-
 3. 在应用下的 urls.py 文件中将视图文件配置进去
-
    ```python
    from django.conf.urls import url
    from . import views
@@ -40,13 +34,10 @@
        url(r'^index$', views.home, name=home),
    ]
    ```
-
 4. 命令行将代码运行
-
    ```
    python manage.py runserver 192.168.x.xxx:8080
    ```
-
    然后可以通过网址 "http://192.168.x.xxx:8080/blog/index" 访问编写的界面
 
 5. 当 url 中带入参数进行传递时，例如
@@ -58,7 +49,7 @@
    	except ValueError as e:
    		print(e)
        dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
-      	return render(request, "time/ahead.html", locals())
+       render(request, "time/ahead.html", locals())
    ```
 
    在 url 配置的时候需要将 offset 传入
@@ -108,15 +99,11 @@
    |   \|   |      表示左右表达式任意匹配一个      | abc\|def | def  |
 
 ###### 使用模版创建视图
-
-1. 首先在项目根目录下创建 templates 文件夹，用来放视图模版，然后在项目下的 settings.py 文件中注册 templates 文件夹，使 Django 能够在 templates 文件夹中找到相应的模版，在 TEMPLATES 中的 DIRS 列表中加入如下代码
-
+1. 首先在项目根目录下创建 templates 文件夹，用来放视图模版，然后在项目下的 settings.py 文件中注册 templates 文件夹，使 django 能够在 templates 文件夹中找到相应的模版，在 TEMPLATES 中的 DIRS 列表中加入如下代码
    ```python
    'DIRS': [os.path.join(BASE_DIR, 'templates')],
    ```
-
 2. 在 templates 文件夹下再创建放应用模版的文件夹 例如 blog ，然后在 blog 创建 index.html 作为 index 视图的模版
-
    ```html
    <!DOCTYPE html>
    <html lang="en">
@@ -129,9 +116,7 @@
    </body>
    </html>
    ```
-
 3. 修改视图文件函数
-
    ```python
    from django.shortcuts import render
 
@@ -149,8 +134,7 @@
    	return render(request, 'blog\index.html', locals())
    ```
 
-4. Django 内置模版标签
-
+4. django 内置模版标签
    > 1. {% extends %} 继承模版标签
    >
    > 2. 用两个大括号括起来的文字 (例如 {{ post_title }}) 称为变量 (variable)，这意味着在此处插入指定变量的值
@@ -221,10 +205,8 @@
    >
    > 5. {% autoescape %}{% endautoescape %} 关闭代码块中的自动转义，父类已经关闭则子类也关闭
 
-5. Django 常用内置模版过滤器
-
+5. django 常用内置模版过滤器
    模板过滤器是在变量被显示前修改它的值的一个简单方法，以 "|" 拼接，过滤器的参数跟随冒号之后并且总是以双引号包含，例如 {{ value|add:"2" }} 返回值为 value + 2 的值
-
    > add:"n"，对象相加，如果是数字则是数字加法，列表则是列表的和，无法相加为空。
    >
    > addslashes，增加反斜杠，处理 Javascript 文本非常有用
@@ -241,11 +223,9 @@
    >
    > .......
 
-6. Django 自定义过滤器和标签
-
+6. django 自定义过滤器和标签
    1. 在应用目录下创建 templatetags 文件夹，同时建立空文件 __ init __.py 和过滤器文件 例如 custom_filter.py 
    2. 在 custom_filter.py 文件中添加过滤器
-
    ```python
    from django import template
    from blog.models import Category
@@ -269,7 +249,6 @@
    ```
 
    1. 引用自定义过滤器时需要先导入再使用
-
    ```html
    {% load custom_filter %}
    <html lang="en">
@@ -288,17 +267,12 @@
    </body>
    </html>
    ```
-
 ###### 静态文件处理
-
 1. 在应用目录下创建 static 文件夹，可以将常用的 css 文件，js 文件等放入该文件夹
-
 2. 在需要引用静态文件的模版中做如下处理
-
    ```html
    {# 引入静态文件，只有加载标签模版后才能使用 {% static %} 标签 #}
    {% load staticfiles %}
-
    {# 在需要引入的地方引入相应文件，例如在 static 文件夹下有个 blog 文件夹，需要引用其 #}
    {# 中的 css/bootstrap.min.css 文件可以通过如下方式进行引入 #}
    <link rel="stylesheet" href="{% static 'blog/css/bootstrap.min.css' %}">

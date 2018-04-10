@@ -1,7 +1,7 @@
-##### 六. Django admin 后台管理系统
-
+django 的强大之处还有自带后台管理系统，真心给力！！
+这一部分将介绍 django 自带的后台管理系统，以及如何通过表单提交数据
+##### 六. django admin 后台管理系统
 1. 在后台管理系统注册创建的模型
-
    ```python
    from django.contrib import admin
    from blog.models import Post, Category, Tag
@@ -11,11 +11,9 @@
    ```
 
    然后运行项目，```python manager.py runserver 192.168.x.xxx:8080```
-
-   可以通过 "http://192.168.x.xxx:8080/admin" 打开 admin 管理系统，可以找到站点管理，对模型进行管理
+   可以通过 "http://192.168.x.xxx:8080/admin" 打开 admin 管理系统，登录的账号密码就是我们第一部分通过命令行 ```createsuperuser```时所创建的，登陆后我们可以找到站点管理，对模型进行管理操作
 
 2. 自定义 admin
-
    ```python
    # 在使用后台管理的时候，可能需要自己定制 admin 的显示内容，可以通过如下进行定制
    @admin.register(Post)
@@ -67,12 +65,10 @@
    admin.site.site_title = "Blog Manager"
    ```
 
-##### 七. Django 表单
+##### 二. django 表单
 
 ###### 存在相应模型（POST 方式）
-
 1. 在应用文件夹下创建 forms.py 文件存放表单
-
    ```python
    from django import forms
    from .models import Post
@@ -87,7 +83,6 @@
    ```
 
 2. 创建表单视图
-
    ```python
    from django.shortcuts import render, redict
    from blog.models import Post
@@ -99,7 +94,7 @@
        if request.method = 'POST':
            # 用户提交的信息存在 request.POST 中，相当于一个字典取值
            form = PostForm(request.POST)
-           # 判断表单是否有效，Django 自动校验表单数据是否合理，根据模型的字段类型来判断
+           # 判断表单是否有效，django 自动校验表单数据是否合理，根据模型的字段类型来判断
            if form.is_valid():
                # commit=False 表示只生成模型类的实例，不马上保存到数据库
                post = form.save(commit=Flase)
@@ -124,7 +119,6 @@
    ```
 
 4. 通过模版进行表单的前端渲染
-
    ```html
    <form action="{% url 'blog:new_post' %}" method="post" >
        {# 防止被攻击，使表单更加安全 #}
@@ -152,9 +146,7 @@
    ```
 
 ###### 不存在对应模型（POST 方式）
-
 1. 在 forms.py 中创建表单
-
    ```python
    # 假设有个信息反馈的表单
    class ContractForm(forms.Form):
@@ -171,9 +163,7 @@
                raise forms.ValidationError('Not Enough words')
            return message
    ```
-
 2. 创建表单视图
-
    ```python
    def post_contract(request):
    	if request.method = 'POST':
@@ -189,15 +179,11 @@
            form = ContractForm()
    	return render(request, 'blog/contact_post.html', locals())
    ```
-
 3. 绑定 URL
-
    ```python
    urlpatterns = [url(r'^contract/$', 'contract_us.html', name='contract_us'),]
    ```
-
 4. 通过模版进行表单的前端渲染
-
    ```html
    <!DOCTYPE html>
    <html lang="en">
@@ -227,9 +213,7 @@
    ```
 
 ###### 类似搜索的表单（GET）
-
 1. 创建表单视图
-
    ```python
    def search(request):
        # 获取到用户提交的搜索关键词，字典的键值同模版中的 name 属性值
@@ -244,15 +228,11 @@
        post_list = Post.objects.filter(Q(title__icontains=q) | Q(body__icontains=q))
        return render(request, 'blog/home.html', locals())
    ```
-
 2. 绑定 URL
-
    ```
    urlpatterns = [url(r'^search/$', views.search, name='search'),]
    ```
-
 3. 通过模版进行表单的前端渲染
-
    ```html
    {# ...... #}
    <div id="search-form" class="search-form">

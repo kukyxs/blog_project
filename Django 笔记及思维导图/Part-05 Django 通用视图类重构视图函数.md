@@ -1,4 +1,5 @@
-##### 八. 利用 Django 通用视图类创建类视图
+终于到最后一部分了，这部分我们将通过 django 自带的通用视图类替换之前写的视图函数，对视图进行重构
+##### 利用 django 通用视图类创建类视图
 
 1. 创建视图类
 
@@ -101,9 +102,7 @@
    	url(r'post/(?P<pk>[0-9]+)/$', views.PostDetailView.as_view(), name='post'),
    ]
    ``````
-
-#####九. 创建分页
-
+有时候数据过多，同一页加载全部数据，用户的体验肯定不好，我们通过通用视图类来创建分页
 ######通过 ListView 创建分页
 
 1. 指定 ListView 中的 paginate_by 属性来设置分页
@@ -185,31 +184,27 @@
 
 
 
-> Paginator 常用属性
->
-> ``````python
-> from django.core.paginator import Paginator
->
-> item_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n']
-> # 指定 paginator 的列表以及每页显示的列表数量
-> p = Paginator(item_list, 2)
-> print(p.count) # 返回列表的总数	14
-> print(p.num_pages) # 返回总页数    7
-> print(p.page_range) # 返回页数的范围	(1, 8)
-> print(p.per_page) # 返回每页列表的数量
-> print(p.object_list) # 返回所有的列表 item
->
-> # 通过 page(num) 方法获取 num 页的列表 <Page 2 of 7>
-> page2 = p.page(2)
-> print(page2.number) # 获取当前页的页码
-> print(page2.object_list) # 获取该页码下的所有列表    ['c', 'd']
-> print(page2.has_next()) # 是否有下页    True
-> print(page2.has_previous()) # 是否有上页    True
-> print(page2.has_other_pages()) # 是否有其他页    True
-> # 如果没有上/下一页则返回 EmptyPage 错误 EmptyPage: That page contains no results
-> print(page2.next_page_number()) # 获取下一页的页码    3
-> print(page2.previous_page_number()) # 获取上一页的页码    1
-> print(page2.start_index()) # 当前页第一个 item 在列表中的位置    3
-> print(page2.end_index()) # 当前页最后一个 item 在列表中的位置    4
-> ``````
-
+Paginator 常用属性
+``````python
+from django.core.paginator import Paginator
+item_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n']
+# 指定 paginator 的列表以及每页显示的列表数量
+p = Paginator(item_list, 2)
+print(p.count) # 返回列表的总数	14
+print(p.num_pages) # 返回总页数    7
+print(p.page_range) # 返回页数的范围	(1, 8)
+print(p.per_page) # 返回每页列表的数量
+print(p.object_list) # 返回所有的列表 item
+# 通过 page(num) 方法获取 num 页的列表 <Page 2 of 7>
+page2 = p.page(2)
+print(page2.number) # 获取当前页的页码
+print(page2.object_list) # 获取该页码下的所有列表    ['c', 'd']
+print(page2.has_next()) # 是否有下页    True
+print(page2.has_previous()) # 是否有上页    True
+print(page2.has_other_pages()) # 是否有其他页    True
+# 如果没有上/下一页则返回 EmptyPage 错误 EmptyPage: That page contains no results
+print(page2.next_page_number()) # 获取下一页的页码    3
+print(page2.previous_page_number()) # 获取上一页的页码    1
+print(page2.start_index()) # 当前页第一个 item 在列表中的位置    3
+print(page2.end_index()) # 当前页最后一个 item 在列表中的位置    4
+``````
