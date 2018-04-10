@@ -42,10 +42,10 @@
 
                     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                         <ul class="nav navbar-nav navbar-right">
-                            <li class="cl-effect-11"><a href="{% url 'blog:home' %}" data-hover="Home">首页</a></li>
-                            <li class="cl-effect-11"><a href="{% url 'blog:full' %}" data-hover="Blog">博客</a></li>
-                            <li class="cl-effect-11"><a href="{% url 'blog:about' %}" data-hover="About">关于</a></li>
-                            <li class="cl-effect-11"><a href="{% url 'blog:contact' %}" data-hover="Contact">联系</a></li>
+                            <li class="cl-effect-11"><a href="{% url 'blog:home' %}" data-hover="首页">首页</a></li>
+                            <li class="cl-effect-11"><a href="{% url 'blog:full' %}" data-hover="博客">博客</a></li>
+                            <li class="cl-effect-11"><a href="{% url 'blog:about' %}" data-hover="关于">关于</a></li>
+                            <li class="cl-effect-11"><a href="{% url 'blog:contact' %}" data-hover="联系">联系</a></li>
                         </ul>
                     </div><!-- /.navbar-collapse -->
                 </nav>
@@ -71,7 +71,7 @@
                 <article class="post">
                     <div class="entry-content clearfix">
                         <figure class="img-responsive-center">
-                            <img class="img-responsive" src="img/me.jpg" alt="Developer Image">
+                            <img class="img-responsive" src="{% static 'blog/img/img.jpg' %}" alt="Developer Image">
                         </figure>
                         <p>Responsive web design offers us a way forward, finally allowing us to design for the ebb and
                             flow of things. There are many variations of passages of Lorem Ipsum available, but the
