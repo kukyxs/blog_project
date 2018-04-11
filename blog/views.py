@@ -289,7 +289,7 @@ def query(request):
 
     if not _q:
         error_message = 'Input Keyword'
-        return render(request, 'bolg/full-width.html', locals())
+        return render(request, 'blog/full-width.html', locals())
 
     post_list = Post.objects.filter(Q(title__icontains=_q) | Q(body__icontains=_q))
     return render(request, 'blog/full-width.html', locals())

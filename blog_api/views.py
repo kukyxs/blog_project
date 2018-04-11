@@ -16,10 +16,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from blog.models import Post, Category
+from blog.models import Post, Category, Tag
 from blog_api.filters import PostFilter
 from blog_api.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
-from blog_api.serializers import PostSerializer, CategorySerializer, UserSerializer
+from blog_api.serializers import PostSerializer, CategorySerializer, UserSerializer, TagSerializer
 
 
 @csrf_exempt
@@ -102,8 +102,21 @@ class PostViewSet(viewsets.ModelViewSet):
     filter_class = PostFilter
     authentication_classes = (TokenAuthentication,)
 
+    # 保存方法重写时候重写 perform_create 即可
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    # 更新方法重写时候重写 perform_update 即可
+    def perform_update(self, serializer):
+        post = self.get_object()
+        post.tags.clear()
+        if self.request.data['tags']:
+            if "," in self.request.data['tags']:
+                for id in self.request.data['tags'].split(","):
+                    post.tags.add(id)
+            else:
+                post.tags.add(self.request.data['tags'])
+        serializer.save()
 
     def destroy(self, request, *args, **kwargs):
         post = self.get_object()
@@ -268,7 +281,10 @@ def category_detail_view(request, pk, format=None):
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    # 限制只有管理员才可以修改
+    permission_classes = (permissions.IsAdminUser,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ['name', ]
 
     def destroy(self, request, *args, **kwargs):
         category = self.get_object()
@@ -284,6 +300,14 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filter_fields = ['username', ]
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (permissions.IsAdminUser,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ['name', ]
 
 
 # 自定义 AuthToken
