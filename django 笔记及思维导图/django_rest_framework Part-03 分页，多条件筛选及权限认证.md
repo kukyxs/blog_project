@@ -1,6 +1,8 @@
+上一部分我们通过基本类重构了 view，那这部分我们继续深入了解下 DRF 的分页，多条件筛选以及 Token 权限认证
+
 #####一. 接口数据分页
 
-上一部分我们通过基本类重构了 view，接着我们需要对返回的数据设置分页，否则单页返回的数量过多也不好处理。
+如果说，后台给你返回的数据很多很多，然后又没有做分页(反正我是碰到过)，然后就一直卡在加载界面，心好累。所以分页是很有必要的，分页可以全局设置，也可以不同的 view 设置不同的分页。
 
 ######1. 设置全局分页参数
 
@@ -36,6 +38,10 @@ class PostViewSet(viewsets.ModelViewSet):
     # 也可以是自定义的 Pagination 类
     pagination_class = StandardPagination
 ```
+
+为了方便查看，我把每页设置一条参数，结果页面如下![接口分页效果](https://upload-images.jianshu.io/upload_images/2888797-fe9c54aa300b56bf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+我们可以看到接口返回的信息还包含了前一页和后一页的 url 是不是很人性化
 
 #####二. 接口数据多条件筛选 
 
@@ -100,7 +106,9 @@ class PostViewSet(viewsets.ModelViewSet):
     filter_class = PostFilter
 `````
 
-rest_framework 的 filter_backends 还有 SearchFilter，OrderingFilter，DjangoObjectPermissionsFilter 等，有兴趣的可以查看官网 [filtering](http://www.django-rest-framework.org/api-guide/filtering/#example)
+我们可以通过网址上拼接筛选信息，然后结果如下![多条件筛选效果](https://upload-images.jianshu.io/upload_images/2888797-f70eb04bb4367dd5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+DRF 的 filter_backends 还有 SearchFilter，OrderingFilter，DjangoObjectPermissionsFilter 等，有兴趣的可以查看官网 [filtering](http://www.django-rest-framework.org/api-guide/filtering/#example)
 
 ##### 三. rest_framework 权限设置
 
@@ -162,13 +170,15 @@ class PostViewSet(viewsets.ModelViewSet):
 http Post http://192.168.x.xxx:8080/api/posts/ title="new_post"&......
 ``````
 
-然后我们会得到一个 json 数据 {"detail": "身份认证信息未提供。"} 显然被拒绝访问了，同样我们操作 DELETE 等操作也是一样，接着我们通过用户名登陆后再操作
+然后我们会得到一个 json 数据 {"detail": "身份认证信息未提供。"} 显然被拒绝访问了，同样我们操作 DELETE 等操作也是一样，![身份未认证](https://upload-images.jianshu.io/upload_images/2888797-be56e57ff0fd304c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+接着我们通过用户名登陆后再操作
 
 ``````
 http -a [username]:[password] POST http://192.168.x.xxx:8080/api/posts/ title="new_post"&......
 ``````
 
-然后我们就可以写入等操作了，但是目前这个权限有个缺点，就是不是 post 下的 author 登陆后也可以对 post 进行操作修改，我们重新通过继承 BasePermission 重写一个权限类，限制只能由 post 下的 author 进行修改操作
+然后我们发现就可以进行操作了，但是目前这个权限有个缺点，就是不是 post 下的 author 登陆后也可以对 post 进行操作修改，我们重新通过继承 BasePermission 重写一个权限类，限制只能由 post 下的 author 进行修改操作
 
 ``````python
 # 创建一个 permissions.py 文件，然后把我们的权限写在该文件下
@@ -189,7 +199,7 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsPostAuthorOrReadOnly)
 ``````
 
-然后我们通过别的用户名对该接口做修改信息的操作，很显然也被拒绝了。
+当我们通过别的用户名对该接口做修改信息的操作，你会被狠狠的拒绝。
 
 ##### 四. rest_framework 身份认证
 
@@ -255,21 +265,17 @@ urlpatterns = [
 
 ```http POST http://192.168.x.xxx:8080/api/login/ username=xxx password=xxxxx```
 
-然后我们能够查看到返回结果类似
-
-``````json
-{ "token": "d72251c39dba2b164db18480cfbccefbcc82bbc1" }
-``````
+然后我们能够查看到返回结果类似如下![用户登录](https://upload-images.jianshu.io/upload_images/2888797-1cd266b93a55938b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 当我们获取到 token 后保存到 SharePreference 中，每次访问都在请求头带上 token 值，就不需要每次通过账号密码登录才有权限。
 
-之前我们做删除等编辑操作在 httpie 都是如下操作的
+例如之前我们做删除等编辑操作都需要用户进行登录
 
 `````
 http -a[username]:[password] DELETE http://192.168.x.xxx:8080/api/post/10/
 `````
 
-获得 token 后，我们可以通过如下操作，也可以达到相同的效果
+获得 token 后，我们可以通过如下操作，就可以达到相同的效果
 
 ``````
 http DELETE http://192.168.x.xxx:8080/api/post/10/ "Authorization: Token [your_token_value]"
@@ -318,4 +324,4 @@ class CustomAuthToken(ObtainAuthToken):
         return Response({'token': token.key, 'user_id': user.pk, 'user_name': user.username})
 ``````
 
-然后在 url 绑定我们自己的认证类即可
+然后在 url 绑定我们自己的认证类即可返回我们需要的字段值啦~ DRF 的基本内容到这边也基本结束了，希望你能有所收获。

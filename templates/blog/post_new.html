@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>new-post</title>
+</head>
+<body>
+<form action="{% url 'blog:new_post' %}" method="post">
+    {# 防止被攻击，使表单更加安全 #}
+    {% csrf_token %}
+    <div class="row">
+        <div class="col-md-12">
+            <label for="{{ form.title.id_for_label }}">标题：</label>
+            {# 根据模型的字段类型自动渲染成表单 #}
+            {{ form.title }}
+            {# 渲染表单对应的错误 #}
+            {{ form.title.errors }}
+        </div>
+
+        <div class="col-md-12">
+            <label for="{{ form.text.id_for_label }}">内容：</label>
+            {{ form.body }}
+            {{ form.body.errors }}
+        </div>
+
+        <div>
+            <button type="submit" class="submit-btn">发表：</button>
+        </div>
+    </div>
+</form>
+</body>
+</html>

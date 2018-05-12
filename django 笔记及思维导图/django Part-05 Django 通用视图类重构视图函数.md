@@ -102,7 +102,10 @@
    	url(r'post/(?P<pk>[0-9]+)/$', views.PostDetailView.as_view(), name='post'),
    ]
    ``````
-有时候数据过多，同一页加载全部数据，用户的体验肯定不好，我们通过通用视图类来创建分页
+修改完后的界面应该和之前的效果是一样的
+![列表界面.png](https://upload-images.jianshu.io/upload_images/2888797-84318dada70a06fb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![详情界面](https://upload-images.jianshu.io/upload_images/2888797-ecf1306edfab8975.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+有时候如果我们的数据过多，同一页加载全部数据，用户的体验肯定不好，我们通过通用视图类来创建分页，这边为了方便显示，我们会设置每页加载一篇文章
 ######通过 ListView 创建分页
 
 1. 指定 ListView 中的 paginate_by 属性来设置分页
@@ -112,8 +115,8 @@
        model = Post
        template_name = 'blog/home.html'
        context_objects_name = 'post_list'
-       # 指定分页，每页数量为 10
-       paginate_by = 10
+       # 指定分页，每页数量为 1
+       paginate_by = 1
    ``````
 
 2. 在模版中加入分页
@@ -181,10 +184,9 @@
        </span>
    </div>
    ``````
+最后做了分页的效果界面![带分页列表](https://upload-images.jianshu.io/upload_images/2888797-604032378a06361f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)目前的分页效果看上去并不那么美观，在实际项目中，我们优化了分页的显示，具体的代码就不贴了(我怕代码太多你们会打我)，可以下载项目查看，这边我们可以看下效果图![优化分页列表](https://upload-images.jianshu.io/upload_images/2888797-c2812cf646f609b5.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-
-
-Paginator 常用属性
+最后我们列下 Paginator 常用属性结束 django 的入门教程，接下来会有 DRF 的入门教程，django 算是其基础吧，DRF 实现了前后端分离，刚好适合我这种 Android 开发需要接口的。
 ``````python
 from django.core.paginator import Paginator
 item_list = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n']

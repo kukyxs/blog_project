@@ -1,19 +1,16 @@
-##### Rest 框架的 Request 和 Response 对象，以及视图改造
+上一部分，我们已经提到这篇会讲 views 的代码优化，在这之前，我们先适当了解下 DRF 中的 Request 和 Response。
 
-在 rest 框架中，引入了 Request 对象 和 Response 对象
+1. Request 继承 HttpRequest，里面有个 request.data 属性，可以处理任意数据，例如 'POST'，'PUT'，'PATCH'，其用法类似表单中的 request.POST (参考 django 表单部分)
+2. Response 是一种 TemplateResponse 采用未呈现的内容，通过内容协商来确定正确的内容类型以返回给客户端，用法直接 return Response(data) 即可
 
-Request 继承 HttpRequest，里面有个 request.data 属性，可以处理任意数据，例如 'POST'，'PUT'，'PATCH'，其用法类似表单中的 request.POST (参考 django 表单部分)
-
-Response 是一种 TemplateResponse 采用未呈现的内容，通过内容协商来确定正确的内容类型以返回给客户端，用法直接 return Response(data) 即可
-
-了解完 Request 和 Response 我们将对 view 分别通过 @api_view，APIView 和通用视图类对视图进行一些改造
+了解完 Request 和 Response 我们将分别通过 @api_view，APIView 和通用视图类对 view 进行一些改造
 
 ######1. api_view 注解重构
 
 ``````python
 # ....import 省略
 
-# 将该视图的请求方法写在注解中
+# 将该视图的请求方法写在注解中，表示该接口只接受列表内的请求方式
 @api_view(['GET', 'POST'])
 def post_list(request):
     if request.method == 'GET':
@@ -39,11 +36,7 @@ def post_list(request):
 > Vary: Accept
 > ```
 
-这些返回项，我们继续做一些修改
-
-在 post_list 函数中加入 format 参数，默认值设置为 None
-
-接着我们对 url 也做一些修改
+这些返回项，而且页面也不是 json了![优化后的列表接口信息](https://upload-images.jianshu.io/upload_images/2888797-b0d64edd2499c3d2.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)我们继续做一些修改，在 post_list 函数中加入 format 参数，默认值设置为 None，接着我们对 url 也做一些修改，通过 ```format_suffix_patterns``` 函数对接口返回的信息进行一些处理
 
 ``````python
 # ....import 省略
@@ -57,7 +50,7 @@ urlpatterns = [
 urlpatterns = format_suffix_patterns(urlpatterns)
 ``````
 
-然后我们对我们接口请求的网址做些修改，在我们之前请求的网址末尾加入 .json 或者 .api 记得去除最末尾的 "/"，然后我们又可以看到修改前返回的 json 格式数据啦。对于 detail 接口的修改可以根据 list 进行相应修改，不做多余解释。
+然后我们对我们接口请求的网址做些修改，在我们之前请求的网址末尾加入 .json **记得去除最末尾的 "/"**，然后我们又可以看到修改前返回的 json 格式数据啦(这边就不贴图啦~)。对于 detail 接口的修改我们也可以根据对 list 的修改进行相应修改，不做多余解释。
 
 ###### 2. APIView 重构
 
@@ -89,9 +82,9 @@ urlpatterns = [
 urlpatterns = fromat_suffix_patterns(urlpatterns)
 ``````
 
-根据 list 可以修改 detail 的接口 view
+然后我们又可以看到和上一个例子一样的界面
 
-###### 3. 通过 mixins 和 generics 重构
+###### 3. 通过 mixins 和 generics 重构(这个代码够少喔，效果是一样的)
 
 ``````python
 class PostListMixins(mixins.ListModelMixin,
@@ -128,7 +121,7 @@ class PostDetailMixin(mixins.RetrieveModelMixin,
         return self.destroy(self, request, *args, **kwargs)
 ``````
 
-###### 4. 通用的基于类重构(代码少到想哭，不信继续看)
+###### 4. 通用的基于类重构(代码更少，少到想哭，不信继续看)
 
 ``````python
 # 列表视图
@@ -142,7 +135,7 @@ class PostDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
 ``````
 
-######5. 通过 ViewSet 重构 view，通过 Routers 重构 url (也是少到可以哭的程度)
+######5. 通过 ViewSet 重构 view，通过 Routers 重构 url (也是少到可以哭的程度，最后效果也是一样的)
 
 首先我们通过继承 ViewSet 来重构 view 类
 
@@ -152,7 +145,7 @@ class PostViewSet(viewset.ModelViewSet):
     serializer_class = PostSerializer
     
     # 推荐重写该方法，默认返回 status.HTTP_204_NO_CONTENT，
-    # 会返回空信息，个人觉得不方便判断，当然按照个人喜好决定，不强制
+    # 会返回空信息，个人觉得不方便判断，当然按照个人喜好决定
 	def destroy(self, request, *args, **kwargs):
         post = self.get_object()
         if post is not None:
@@ -180,9 +173,7 @@ urlpatterns = [
 ]
 ``````
 
-OK，重构完毕，真是代码一个比一个少，少到哭。当然并不是说之前多的不如不讲，至少我们知道要如何去创建一个 resultful 接口，至于后面的代码那么少，都是因为框架的功劳啊。
-
-接着我们可以看下 ModelViewSet 的源码(相信很多都不愿意看源码，包括之前自己也是，但是源码的确能够解释清楚很多东西，所以这里还是推荐看源码，不需要每句代码都能懂，大概的意思懂就可以了)
+真是人比人，气死人，代码居然到最后少了那么多，至于为什么，我们来看下 ModelViewSet 的源码吧(兄 dei 别排斥源码啊，这里真的很少很少的，但是又能让我们知道到底做了什么事)  
 
 ``````python
 class ModelViewSet(mixins.CreateModelMixin,
@@ -198,7 +189,7 @@ class ModelViewSet(mixins.CreateModelMixin,
     pass
 ``````
 
-其内部的实现原理也是通过继承各种 mixins 的 view 来实现，然后我们看下 mixins 的源码，大概的原理注解解释的应该够清楚
+看到这是不是，觉得我们之前的优化都是一步接着一步来的，那我们继续看下 ModelMixin 的源码好了
 
 ``````python
 class CreateModelMixin(object):
@@ -297,33 +288,25 @@ class DestroyModelMixin(object):
         instance.delete()
 
 ``````
-看完源码，更加确定我们之前讲的一堆东西并不是没用的。最后附上接口测试的截图 Android 版（有图有真相才行，省的你们出错了打我），为了方便，写了另外的一个只有一个字段的模型
-Android Retrofit Api![apis](https://upload-images.jianshu.io/upload_images/2888797-e11117d912027c90.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+其实内部的具体实现还是我们上一部分写的那些东西，接着，我觉得有必要把自己在 Android 端做的接口测试代码和运行结果贴出来，不然你们又会觉得我坑你们了......这边我为了偷懒(嗯对的，就是偷懒)，我又写了一个只有单个字段的 model
 
-获取列表![get_list](https://upload-images.jianshu.io/upload_images/2888797-5c3317f2c773e10e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![get_list_result](https://upload-images.jianshu.io/upload_images/2888797-5abddbdd6b7530ae.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![Android 端 api](https://upload-images.jianshu.io/upload_images/2888797-e11117d912027c90.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-新建数据![post_one](https://upload-images.jianshu.io/upload_images/2888797-7cdaa9c87512fa9d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![post_one_result](https://upload-images.jianshu.io/upload_images/2888797-549eb448bc91cd40.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![获取列表](https://upload-images.jianshu.io/upload_images/2888797-5c3317f2c773e10e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![获取列表结果](https://upload-images.jianshu.io/upload_images/2888797-5abddbdd6b7530ae.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-获取详情![get_detail](https://upload-images.jianshu.io/upload_images/2888797-57b69ac0d895b570.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![get_detail_result](https://upload-images.jianshu.io/upload_images/2888797-142bce2a38aaffcd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![新建数据](https://upload-images.jianshu.io/upload_images/2888797-7cdaa9c87512fa9d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![新建数据返回结果](https://upload-images.jianshu.io/upload_images/2888797-549eb448bc91cd40.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-更新详情![update_detail](https://upload-images.jianshu.io/upload_images/2888797-f8fbbbc5afe2b618.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![update_detail_result](https://upload-images.jianshu.io/upload_images/2888797-cd4383f46b9768af.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![获取详情](https://upload-images.jianshu.io/upload_images/2888797-57b69ac0d895b570.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![获取详情返回结果](https://upload-images.jianshu.io/upload_images/2888797-142bce2a38aaffcd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-删除数据![delete_obj](https://upload-images.jianshu.io/upload_images/2888797-be32d82940ac8e85.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![delete_obj_result](https://upload-images.jianshu.io/upload_images/2888797-db3e1b84d3efd760.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![更新详情](https://upload-images.jianshu.io/upload_images/2888797-f8fbbbc5afe2b618.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![更新详情返回结果](https://upload-images.jianshu.io/upload_images/2888797-cd4383f46b9768af.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-最后的最后，自己写的时候遇到的一个坑，记录下吧，更新 ManyToMany 字段的时候，我们需要重新写 post 方法，直接传 id 不能更新。
+![删除数据](https://upload-images.jianshu.io/upload_images/2888797-be32d82940ac8e85.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![删除数据返回结果](https://upload-images.jianshu.io/upload_images/2888797-db3e1b84d3efd760.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+在结束文章的最后，记录自己写的时候遇到的一个坑，当更新 ManyToMany 字段的时候，我们需要重新写 post 方法，**直接传 id 是不能更新的，直接传 id 是不能更新的，直接传 id 是不能更新的(三遍三遍三遍)**。
 
 ``````python
 # 假设我们的 post 有一个 ManyToMany 字段 tags
 class PostDetailView(APIView):
-    def get_object(self, pk):
-        try:
-            return Post.objects.filter(pk=pk)
-        except Post.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-	def get(self, request, pk, format=None):
-        serializer = PostSerializer(self.get_object(pk), data=request.data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
     # 更新的时候，需要约定好 ManyToMany 字段的 id 回传时候以什么方式间隔，例如我们用 "," 分隔
     def put(self, request, pk, format=None):
@@ -342,11 +325,6 @@ class PostDetailView(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    # 建议最后返回的 status 不使用 status.HTTP_204_NO_CONTENT，不方便判断
-    def delete(self, request, pk, format=None):
-        self.get_object(pk).delete()
-        return Response({"message": "Delete Succeed", "code": "200"}, status=status.HTTP_200_OK)
 ``````
 
 在 url 中还是之前的那样绑定

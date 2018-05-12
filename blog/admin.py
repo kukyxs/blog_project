@@ -7,6 +7,9 @@ from blog.models import Post, Category, Tag
 class PostAdmin(admin.ModelAdmin):
     list_display = ['title', 'create_time', 'modified_time', 'category', 'author']
     list_per_page = 50
+    # list_filter = ('author', 'title')
+    # search_fields = ('title',)
+    # date_hierarchy = 'create_time'
 
 
 @admin.register(Category)

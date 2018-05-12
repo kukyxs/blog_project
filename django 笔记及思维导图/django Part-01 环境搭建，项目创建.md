@@ -1,6 +1,8 @@
 学完  Python 后还是蠢蠢欲动，的确被 Python 的简洁吸引了，刚好想自己写接口玩，果断入手 django，系列文章算是学习过程的分享，给有需要的 developer 们，同时也怕自己忘了，毕竟主要工作还是 Android 开发啊。
 
-首先先奉上一张 django 学习计划思维导图![learning.png](https://upload-images.jianshu.io/upload_images/2888797-49d87e16ae14185a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+首先先奉上一张 django 学习计划思维导图![django-learning.png](https://upload-images.jianshu.io/upload_images/2888797-034702b068b340ab.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+
 然后就是一堆代码和笔记袭来，慢慢享受吧~
 
 ##### 一. django 环境配置 (需要搭建 python 环境)
@@ -26,6 +28,7 @@
 打开命令行切换到项目文件夹，然后输入命令行创建 project
 ```python .......\Python\Python36\Lib\site-packages\django\bin\django-admin.py ```
 ```startproject blog_project[这里为项目名，根据自己实际情况修改]```
+或者通过 ```django-admin startproject blog_project``` 来创建项目
 
 创建成功后，找到项目下的 manage.py 文件，命令行输入
 ```python manage.py runserver```

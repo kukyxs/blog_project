@@ -6,7 +6,10 @@ from . import views
 app_name = 'blog'
 urlpatterns = [
     # url(r'^home$', views.home, name='home'),
+    # url(r'^home/$', views.index, name='home'),
     url(r'^home/$', views.HomeView.as_view(), name='home'),
+
+    url(r'^ahead/(?P<offset>\d+)/$', views.hours_ahead, name='time'),
 
     # url(r'^post/(?P<pk>[0-9]+)/$', views.detail, name="detail"),
     url(r'^post/(?P<pk>[0-9]+)/$', views.PostDetailView.as_view(), name="detail"),
@@ -20,6 +23,8 @@ urlpatterns = [
 
     url(r'^tag/(?P<pk>[0-9]+)/$', views.tags, name='tags'),
     # url(r'^tag/(?P<pk>[0-9]+)/$', views.TagView.as_view(), name='tags'),
+
+    url(r'^post/new/$', views.new_post, name='new_post'),
 
     url(r'^search/$', views.search, name='search'),
 

@@ -6,7 +6,7 @@
 
 看到安装成功的提示就安装成功，可以嗨皮的写 restful 接口了
 
-创建 django 项目，然后创建一个 app，例如 blog_api (不会创建参考 django 部分)
+创建 django 项目，然后创建一个 app，例如 blog_api (不会创建请参考 django 部分)
 
 ```python manage.py startapp blog_api```
 
@@ -25,7 +25,7 @@ INSTALLED_APPS = [
 
 #####二. 创建 rest 的 Serializers 类 
 
-创建 serializer 类之前，我们先在 models.py 文件下创建 model 类（参考 django，不详细解释，直接上代码）
+创建 serializer 类之前，我们需要先在 models.py 文件下创建 model 类（参考 django，不详细解释，直接上代码）
 
 ``````python
 from django.db import models
@@ -52,7 +52,9 @@ class Post(models.Model):
 
 ```python manage.py migrate```
 
-然后创建 serializer 类
+做好准备工作我们就可以创建 serializer 类，serializer 功能主要是对 model 实例提供序列化和反序列化的途径，然后可以转换成为某种表现形式，例如 json 等，其定义的方式和 Form 类似，官方的原话如下
+
+> The first thing we need to get started on our Web API is to provide a way of serializing and deserializing the snippet instances into representations such as `json`. We can do this by declaring serializers that work very similar to Django's forms.
 
 ``````python
 from rest_framework import serializers
@@ -82,11 +84,9 @@ class PostSerializer(serializers.Serializer):
         instance.excerpt = validated_data.get('excerpt', instance.excerpt)
 ``````
 
-Serializer 的常用字段类型类似 Model 类，可以参考 django model 部分的参数，
+Serializer 的常用字段类型类似 Model 类，可以参考 django model 部分的参数，Serializer 的常用设置参数也类似 Model 类，部分不同，例如 model 中的 blank 和 null 在 serializer 中为 allow_blank 和 allow_null，其余类似，可以参考 django model 部分的设置参数。也可以查看官网，[Serializer 字段类型和参数](http://www.django-rest-framework.org/api-guide/fields/)
 
-Serializer 的常用设置参数也类似 Model 类，部分不同，例如 model 中的 blank 和 null 在 serializer 中为 allow_blank 和 allow_null，其余类似，可以参考 django model 部分的设置参数
-
-关于 Serializer 的一些常用操作
+在接下去讲下面的内容之前，我们先了解一下关于 Serializer 的常用操作，这边列出一些常用的功能，可以实际码下看看，效果会比看一遍要好
 
 ``````python
 from .models import Post
@@ -209,9 +209,10 @@ urlpatterns = [
 
 ```python manage.py runserver 192.168.x.xxx:8080```
 
-然后通过网址  http://192.168.x.xxx:8080/api/posts/ 查看 restful 接口
+然后通过网址  http://192.168.x.xxx:8080/api/posts/ 查看 restful 接口，是不是和我们平时从后台获取的接口很像(肯定像啊，因为本来就是这样的啊~~)
+![列表接口](https://upload-images.jianshu.io/upload_images/2888797-b6bc17ca59a3f05b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-或者可以通过 httpie 来进行接口查看，其好处是可以直接操作 POST 等操作
+或者我们也可以通过 httpie 来进行接口查看，其好处是可以直接操作 POST 等操作
 
 首先安装 httpie ```pip install httpie```
 
@@ -219,7 +220,7 @@ urlpatterns = [
 
 ```http http://192.168.x.xxx:8080/api/posts/```
 
-然后可以查看接口返回的数据
+然后可以查看接口返回的数据，效果如下![httpie 获取的列表接口](https://upload-images.jianshu.io/upload_images/2888797-d6341dbd0cc9d873.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ##### 五. Serializer 的第一次优化调整
 
@@ -242,9 +243,7 @@ serializer = PostSerializer()
 print(repr(serializer))
 ``````
 
-别的无需修改，修改完 serializer 类后我们再次运行项目，输入网址查看返回相同的接口信息，而且省了好多重复代码，这才是关键，身为程序员，不会偷懒可不好喔！
-
-如果说需要对某个 post 进行更新，查询，删除等操作，那我们需要一个 detail 类来进行操作
+别的无需修改，修改完 serializer 类后我们再次运行项目，输入网址查看，我们发现返回的接口信息完全一样，关键是我们省了好多好多好多....的重复代码，身为程序员，不会偷懒可不好喔！接着我们需要来操作对某篇具体的 post 进行信息修改，那就涉及到了 post 的 id，还记得我们在 django 部分如何操作这种 url 的么，忘记了往前翻翻......接着我们通过一个 detail 方法来进行某篇具体的 post 的接口操作
 
 ```````python
 from django.shortcuts import get_object_or_404
@@ -293,7 +292,9 @@ urlpatterns = [
     url(r'^post/(?P<pk>[0-9]+)/$', views.post_detail, name='api_post'),
 ]
 ``````
-如果在 model 中存在 ForeignKey 和 MaynToMany 链表结构字段，那我们接口返回的时候只会显示该表中数据的 id 字段，但是很多时候我们需要返回该数据的所有字段，接着我们对 Serializer 进行一些改造，让其可以返回全部的字段。
+我们通过 url 去获取具体的详情![获取详情](https://upload-images.jianshu.io/upload_images/2888797-4eece854a16a82e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+通过上面的两个例子，我们发现 tags 字段返回的信息只有 id，但是很多时候我们需要具体的信息，如果只返回一个 id 的话就是说我们还要用 tag 的 id 再去做请求获取具体的 tag 信息，太麻烦了，我们对 model 中存在的 ForeignKey 和 MaynToMany 链表结构字段做些必要的调整，使其能够返回全部信息。
 
 ``````python
 # 首先我们在 model 中增加两个链表结构字段，同时创建相关的 model 并生成数据库
@@ -336,3 +337,4 @@ class PostSerializer(serializer.ModelSerializer):
         model = Post
         fields = '__all__'
 ``````
+调整完后我们再去查看接口信息，这下全部的信息都显示出来了。OK，这部分我们先到这，下一部分我们将通过 DRF 内置的视图函数，视图类对我们现在 views 中的代码进行优化，敬请期待......最后把图补上![调整后的列表接口信息](https://upload-images.jianshu.io/upload_images/2888797-78f841cbd9a7dd12.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![调整后的详情接口信息](https://upload-images.jianshu.io/upload_images/2888797-7c5aee1cec7ea77d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)

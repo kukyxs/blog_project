@@ -175,4 +175,4 @@ row = cursor.fetchone()
 # 获取全部查询到的数据
 rows = cursor.fetchall()
 ```
-最后项目地址：[blog_project](https://github.com/kukyxs/blog_project)
+ 最后附上整个项目的地址：[blog_project](https://github.com/kukyxs/blog_project)

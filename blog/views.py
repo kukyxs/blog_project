@@ -1,14 +1,36 @@
 import markdown
 from django.db.models import Q
-from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 
+from blog.forms import PostForm
 from blog.models import Post, Category, Tag
 from comment.forms import CommentForm
+import datetime
 
 
 # ########################## HomePage ###################################
+# def index(request):
+#     return HttpResponse("Hello django")
+
+
+def index(request):
+    title = "My Blog Home"
+    welcome = "Welcome to My Blog"
+    return render(request, 'blog\index_home.html', locals())
+
+
+def hours_ahead(request, offset):
+    try:
+        offset = int(offset)
+    except ValueError as e:
+        print(e)
+    dt = datetime.datetime.now() + datetime.timedelta(hours=offset)
+    return HttpResponse("{} hours later is {}".format(offset, dt))
+
+
 def home(request):
     # 获取 Post 模型下的全部数据
     post_list = Post.objects.all()
@@ -41,7 +63,7 @@ class HomeView(ListView):
     # 对应的模型列表数据保存的变量名
     context_object_name = 'post_list'
     # 分页，每页数量
-    paginate_by = 10
+    paginate_by = 1
 
     # 自己创建分页效果
     def get_context_data(self, **kwargs):
@@ -293,3 +315,16 @@ def query(request):
 
     post_list = Post.objects.filter(Q(title__icontains=_q) | Q(body__icontains=_q))
     return render(request, 'blog/full-width.html', locals())
+
+
+def new_post(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = post.user
+            post.save()
+            return redirect(post)
+    else:
+        form = PostForm()
+    return render(request, 'blog/post_new.html', locals())

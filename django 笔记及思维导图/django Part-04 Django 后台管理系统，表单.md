@@ -1,6 +1,6 @@
 django 的强大之处还有自带后台管理系统，真心给力！！
 这一部分将介绍 django 自带的后台管理系统，以及如何通过表单提交数据
-##### 六. django admin 后台管理系统
+##### 一. django admin 后台管理系统
 1. 在后台管理系统注册创建的模型
    ```python
    from django.contrib import admin
@@ -11,7 +11,12 @@ django 的强大之处还有自带后台管理系统，真心给力！！
    ```
 
    然后运行项目，```python manager.py runserver 192.168.x.xxx:8080```
-   可以通过 "http://192.168.x.xxx:8080/admin" 打开 admin 管理系统，登录的账号密码就是我们第一部分通过命令行 ```createsuperuser```时所创建的，登陆后我们可以找到站点管理，对模型进行管理操作
+   可以通过 "http://192.168.x.xxx:8080/admin" 打开 admin 管理系统，登录的账号密码就是我们第一部分通过命令行 ```createsuperuser```时所创建的，登陆后我们可以找到站点管理，对模型进行管理操作![admin 登录界面](https://upload-images.jianshu.io/upload_images/2888797-f8567bcb35166baf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+   ![admin 主界面](https://upload-images.jianshu.io/upload_images/2888797-73ed1bfcbc742708.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+   当然，django 自带的 admin 管理系统不止那么点功能，接着我们通过定义一些参数，来定制 admin 界面
+
+
 
 2. 自定义 admin
    ```python
@@ -64,6 +69,10 @@ django 的强大之处还有自带后台管理系统，真心给力！！
    # 修改 admin 页面头部标题
    admin.site.site_title = "Blog Manager"
    ```
+   修改以后，我们的界面可以看到是以下这样的
+![修改后 admin 登录界面](https://upload-images.jianshu.io/upload_images/2888797-0e0472f285e9f4fe.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![admin 管理界面](https://upload-images.jianshu.io/upload_images/2888797-b545b78da9b39a3c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+为了可以和用户进行交流，我们需要获取用户的一些评论之类的，所以我们需要通过表单让用户提交信息，接下来我们将了解下 django 的表单
 
 ##### 二. django 表单
 
@@ -134,8 +143,8 @@ django 的强大之处还有自带后台管理系统，真心给力！！
            
            <div class="col-md-12">
                <label for="{{ form.text.id_for_label }}">标题：</label>
-               {{ form.text }}
-               {{ form.text.errors }}
+               {{ form.body }}
+               {{ form.body.errors }}
            </div>
            
            <div>
@@ -144,7 +153,8 @@ django 的强大之处还有自带后台管理系统，真心给力！！
        </div>
    </form>
    ```
-
+   我们打开界面可以看到新加文章的表单界面，当提交的信息发生错误的时候，就会显示错误让用户改正
+![提交表单](https://upload-images.jianshu.io/upload_images/2888797-9bc4ce22225a73e9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![提交表单错误](https://upload-images.jianshu.io/upload_images/2888797-e260065dd5ea2a93.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 ###### 不存在对应模型（POST 方式）
 1. 在 forms.py 中创建表单
    ```python
@@ -211,6 +221,8 @@ django 的强大之处还有自带后台管理系统，真心给力！！
    </body>
    </html>
    ```
+   
+打开反馈界面我们可以看到![提交反馈](https://upload-images.jianshu.io/upload_images/2888797-8a1728c13c2efd73.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)![提交反馈错误](https://upload-images.jianshu.io/upload_images/2888797-1b69ebb8b37715b8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ###### 类似搜索的表单（GET）
 1. 创建表单视图
@@ -243,3 +255,6 @@ django 的强大之处还有自带后台管理系统，真心给力！！
    </div>
    {# ...... #}
    ```
+   我们可以看到搜索框![搜索表单](https://upload-images.jianshu.io/upload_images/2888797-8ced6c53b40b53ef.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+   
+最后附上整个项目的地址：[blog_project](https://github.com/kukyxs/blog_project)
